@@ -1,0 +1,29 @@
+{% macro page(tag, url) %}
+<div class="box-footer clearfix">
+    {% if tag %}
+    <ul class="pagination pagination-sm no-margin pull-right">
+        <li><a href="{{ url_for(url,page=1) }}">首页</a></li>
+        {% if tag.has_prev %}
+             <li><a href="{{ url_for(url,page=tag.prev_num) }}">上一页</a></li>
+        {% else %}
+             <li><a href="#">上一页</a></li>
+        {% endif %}
+        {% for v in tag.iter_pages() %}
+        {% if v == tag.page %}
+             <li><a href="#">{{ v }}</a></li>
+         {% elif v != None %}
+                    <li><a href="{{ url_for(url, page=v) }}">{{ v }}</a></li>
+        {% else %}
+             <li><a href="#">...</a></li>
+        {% endif %}
+        {% endfor %}
+        {% if tag.has_next %}
+             <li><a href="{{ url_for(url,page=tag.next_num) }}">下一页</a></li>
+        {% else %}
+             <li><a href="#">下一页</a></li>
+        {% endif %}
+        <li><a href="{{ url_for(url,page=tag.pages) }}">尾页</a></li>
+    </ul>
+    {% endif %}
+</div>
+{% endmacro %}

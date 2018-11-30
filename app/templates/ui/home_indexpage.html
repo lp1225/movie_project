@@ -1,0 +1,57 @@
+{% macro page(page_data, url) %}
+<div class="col-md-12">
+    <nav aria-label="Page navigation">
+        {% if page_data %}
+        <ul class="pagination">
+            <li>
+                <a href="{{ url_for(url,page = 1) }}" aria-label="First">
+                    <span aria-hidden="true">首页</span>
+                </a>
+            </li>
+            {% if page_data.has_prev %}
+            <li>
+                <a href="{{ url_for(url,page = page_data.prev_num) }}" aria-label="Previous">
+                    <span aria-hidden="true">上一页</span>
+                </a>
+            </li>
+            {% else %}
+                <li>
+                <a href="#" aria-label="Previous">
+                    <span aria-hidden="true">上一页</span>
+                </a>
+            </li>
+            {% endif %}
+
+        {% for v in page_data.iter_pages() %}
+        {% if v == page_data.page %}
+             <li><a href="#">{{ v }}</a></li>
+        {% else %}
+             <li><a href="{{ url_for(url,page=v) }}">{{ v }}</a></li>
+        {% endif %}
+        {% endfor %}
+
+
+            {% if page_data.has_next %}
+            <li>
+                <a href="{{ url_for(url, page = page_data.next_num) }}" aria-label="Next">
+                    <span aria-hidden="true">下一页</span>
+                </a>
+            </li>
+            {% else %}
+             <li>
+                <a href="#" aria-label="Next">
+                    <span aria-hidden="true">下一页</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <li>
+                <a href="{{ url_for(url,page = page_data.pages) }}" aria-label="Last">
+                    <span aria-hidden="true">尾页</span>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+    </nav>
+</div>
+{% endmacro %}
