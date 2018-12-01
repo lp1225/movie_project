@@ -4,11 +4,13 @@ from . import home
 from flask import render_template, redirect, url_for, flash, session, request
 from functools import wraps
 from werkzeug.utils import secure_filename
+from elasticsearch import Elasticsearch
+from app import qiniusdk
+import uuid, os, datetime, time, json
+
 from form import RegisterForm, LoginForm, UserdetailForm, PwdForm, CommentForm
 from models import User, Userlog, Previes, Tag, Movie, Comment, Moviecol
 from app.external import db, app
-import uuid, os, datetime, time, json
-from app import qiniusdk
 
 
 # 保存到七牛
@@ -28,7 +30,7 @@ def change_filename(filename):
 
 @home.route('/')
 def home_index():
-    return redirect(url_for('home.index',page=1))
+    return redirect(url_for('home.index', page=1))
 
 
 # 首页电影筛选
@@ -296,20 +298,56 @@ def animation():
 
 
 # 查询
+# @home.route('/search/<int:page>/', methods=['get'])
+# def search(page=None):
+#     if page == None:
+#         page = 1
+#     # 获取key
+#     key = request.args.get('key')
+#     # 模糊查询
+#     movie_count = Movie.query.filter(Movie.title.ilike('%' + key + '%')).count()
+#     if key != '' and movie_count != 0:
+#         if movie_count != 0:
+#             page_data = Movie.query.filter(
+#                 Movie.title.ilike('%'+key+'%')
+#             ).order_by(Movie.addtime.desc()).paginate(page=page, per_page=5)
+#             page_data.key = key
+#
+#             return render_template('home/search.html', key=key, page_data=page_data, movie_count=movie_count)
+#     else:
+#         page_data = None
+#         movie_count = 0
+#         key = key
+#         flash('未找到合适的电影', 'err')
+#         return render_template('home/search.html', key=key, page_data=page_data, movie_count=movie_count)
+
+
+# 使用ElasticSearch来查询
 @home.route('/search/<int:page>/', methods=['get'])
 def search(page=None):
     if page == None:
         page = 1
     # 获取key
     key = request.args.get('key')
-    # 模糊查询
-    movie_count = Movie.query.filter(Movie.title.ilike('%' + key + '%')).count()
-    if key != '' and movie_count != 0:
-        if movie_count != 0:
-            page_data = Movie.query.filter(
-                Movie.title.ilike('%'+key+'%')
-            ).order_by(Movie.addtime.desc()).paginate(page=page, per_page=5)
+    # es查询
+    es = Elasticsearch()
+    params = {
+        'query': {
+            'match': {
+                'title': key
+            }
+        }
+    }
+    movie_es = es.search(index='movies', doc_type='video', body=params)
+    movie_title = movie_es['hits']['hits']
+    if movie_title != []:
+        movie_title = movie_title[0]['_source']['title']
+
+    if key != '' and movie_es != []:
+        if movie_es != 0:
+            page_data = Movie.query.filter(Movie.title == movie_title).order_by(Movie.addtime.desc()).paginate(page=page, per_page=5)
             page_data.key = key
+            movie_count = Movie.query.filter(Movie.title == movie_title).count()
 
             return render_template('home/search.html', key=key, page_data=page_data, movie_count=movie_count)
     else:

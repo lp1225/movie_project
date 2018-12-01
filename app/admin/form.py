@@ -1,6 +1,6 @@
 # encoding: utf-8
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
+from wtforms import StringField, PasswordField, SubmitField, FileField, TextAreaField, SelectField, SelectMultipleField
 from wtforms.validators import DataRequired, ValidationError, EqualTo
 from models import Admin, Auth
 
